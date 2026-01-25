@@ -14,6 +14,13 @@ pause_time = 0
 
 
 async def run_loop():
+    """
+    Main job scheduler loop that runs continuously.
+    
+    Handles periodic execution of scheduled tasks, with support for 
+    development mode pausing and automatic resume functionality.
+    The loop runs every SLEEP_TIME seconds (minimum 60s to prevent race conditions).
+    """
     global pause_time, keep_running
 
     while True:
@@ -38,6 +45,7 @@ async def run_loop():
 
 
 async def scheduler_tick():
+    """Execute a single tick of the task scheduler."""
     # Get the task scheduler instance and print detailed debug info
     scheduler = TaskScheduler.get()
     # Run the scheduler tick
@@ -45,12 +53,14 @@ async def scheduler_tick():
 
 
 def pause_loop():
+    """Pause the job loop execution. Used in development mode to avoid duplicate runs."""
     global keep_running, pause_time
     keep_running = False
     pause_time = time.time()
 
 
 def resume_loop():
+    """Resume the job loop execution after it has been paused."""
     global keep_running, pause_time
     keep_running = True
     pause_time = 0
