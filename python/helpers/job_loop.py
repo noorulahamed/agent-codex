@@ -31,7 +31,10 @@ async def run_loop():
                 await scheduler_tick()
             except Exception as e:
                 PrintStyle().error(errors.format_error(e))
-        await asyncio.sleep(SLEEP_TIME)  # TODO! - if we lower it under 1min, it can run a 5min job multiple times in it's target minute
+        # SLEEP_TIME must be >= 60 seconds to prevent race conditions
+        # Lower values may cause long-running jobs to execute multiple times
+        # within their target minute window
+        await asyncio.sleep(SLEEP_TIME)
 
 
 async def scheduler_tick():

@@ -1553,9 +1553,11 @@ def _apply_settings(previous: Settings | None):
 
         # reload whisper model if necessary
         if not previous or _settings["stt_model_size"] != previous["stt_model_size"]:
+            # Using DeferredTask for non-blocking model preload
+            # TODO: Consider replacing with proper background task queue for better resource management
             task = defer.DeferredTask().start_task(
                 whisper.preload, _settings["stt_model_size"]
-            )  # TODO overkill, replace with background task
+            )
 
         # force memory reload on embedding model change
         if not previous or (
@@ -1611,9 +1613,11 @@ def _apply_settings(previous: Settings | None):
                     type="info", content="Finished updating MCP settings.", temp=True
                 )
 
+            # Using DeferredTask for non-blocking MCP settings update
+            # TODO: Consider replacing with proper background task queue for better resource management
             task2 = defer.DeferredTask().start_task(
                 update_mcp_settings, config.mcp_servers
-            )  # TODO overkill, replace with background task
+            )
 
         # update token in mcp server
         current_token = (
@@ -1626,9 +1630,11 @@ def _apply_settings(previous: Settings | None):
 
                 DynamicMcpProxy.get_instance().reconfigure(token=token)
 
+            # Using DeferredTask for non-blocking MCP token update
+            # TODO: Consider replacing with proper background task queue for better resource management
             task3 = defer.DeferredTask().start_task(
                 update_mcp_token, current_token
-            )  # TODO overkill, replace with background task
+            )
 
         # update token in a2a server
         if not previous or current_token != previous["mcp_server_token"]:
@@ -1638,9 +1644,11 @@ def _apply_settings(previous: Settings | None):
 
                 DynamicA2AProxy.get_instance().reconfigure(token=token)
 
+            # Using DeferredTask for non-blocking A2A token update
+            # TODO: Consider replacing with proper background task queue for better resource management
             task4 = defer.DeferredTask().start_task(
                 update_a2a_token, current_token
-            )  # TODO overkill, replace with background task
+            )
 
 
 def _env_to_dict(data: str):
