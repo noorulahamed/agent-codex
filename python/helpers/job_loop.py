@@ -14,12 +14,19 @@ pause_time = 0
 
 
 async def run_loop():
+    """
+    Main job scheduler loop that runs continuously.
+    
+    Handles periodic execution of scheduled tasks, with support for 
+    development mode pausing and automatic resume functionality.
+    The loop runs every SLEEP_TIME seconds (minimum 60s to prevent race conditions).
+    """
     global pause_time, keep_running
 
     while True:
         if runtime.is_development():
             # Signal to container that the job loop should be paused
-            # if we are runing a development instance to avoid duble-running the jobs
+            # if we are running a development instance to avoid double-running the jobs
             try:
                 await runtime.call_development_function(pause_loop)
             except Exception as e:
@@ -31,10 +38,14 @@ async def run_loop():
                 await scheduler_tick()
             except Exception as e:
                 PrintStyle().error(errors.format_error(e))
-        await asyncio.sleep(SLEEP_TIME)  # TODO! - if we lower it under 1min, it can run a 5min job multiple times in it's target minute
+        # SLEEP_TIME must be >= 60 seconds to prevent race conditions
+        # Lower values may cause long-running jobs to execute multiple times
+        # within their target minute window
+        await asyncio.sleep(SLEEP_TIME)
 
 
 async def scheduler_tick():
+    """Execute a single tick of the task scheduler."""
     # Get the task scheduler instance and print detailed debug info
     scheduler = TaskScheduler.get()
     # Run the scheduler tick
@@ -42,12 +53,14 @@ async def scheduler_tick():
 
 
 def pause_loop():
+    """Pause the job loop execution. Used in development mode to avoid duplicate runs."""
     global keep_running, pause_time
     keep_running = False
     pause_time = time.time()
 
 
 def resume_loop():
+    """Resume the job loop execution after it has been paused."""
     global keep_running, pause_time
     keep_running = True
     pause_time = 0
